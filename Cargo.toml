@@ -1,6 +1,6 @@
 [package]
 name = "limitr"
-version = "v0.1.3"
+version = "0.1.2"
 edition = "2021"
 description = "A crate offering various rate-limiting algorithms such as Token Bucket, Leaky Bucket, and more."
 authors = ["Arteii <ben.arteii@proton.me>"]
