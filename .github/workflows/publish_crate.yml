@@ -2,11 +2,14 @@ name: Publish to Crates
 
 on:
   push:
+    branches:
+      - main
     tags:
-      - "*.*.*"
+      - '*.*.*'
 
 jobs:
   update_and_publish:
+    if: startsWith(github.ref, 'refs/tags/')
     name: Update Cargo.toml Version and Publish to Crates
     runs-on: ubuntu-latest
     environment: crates
