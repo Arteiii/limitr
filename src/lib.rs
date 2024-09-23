@@ -1,8 +1,5 @@
 //! Limitr: Rate-Limiting Algorithms Library
 //!
-//! [![codecov](https://codecov.io/gh/Arteiii/limitr/graph/badge.svg?token=DKD1ZYRT5D)](https://codecov.io/gh/Arteiii/limitr)
-//! [![Check and Lint](https://github.com/Arteiii/limitr/actions/workflows/check_and_lint.yml/badge.svg)](https://github.com/Arteiii/limitr/actions/workflows/check_and_lint.yml)
-//! 
 //! [![GitHub]](https://github.com/Arteiii/limitr)&ensp;[![docs-rs]](https://docs.rs/limitr/latest/limitr/)&ensp;[![crates-io]](https://crates.io/crates/limitr/)
 //!
 //! [GitHub]:
