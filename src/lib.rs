@@ -39,3 +39,6 @@
 
 #[cfg(feature = "bucket")]
 pub mod bucket;
+
+#[cfg(feature = "window")]
+pub mod window;

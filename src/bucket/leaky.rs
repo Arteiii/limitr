@@ -13,9 +13,8 @@
 //! use limitr::bucket::LeakyBucket;
 //! use tokio::time::{sleep, Duration};
 //!
-//! #[tokio::main]
-//! async fn main() {
-//!     let mut bucket = LeakyBucket::new(10, 2);
+//! # tokio_test::block_on(async {
+//!  let mut bucket = LeakyBucket::new(10, 2);
 //!
 //!     for i in 0..15 {
 //!         if bucket.try_consume().await {
@@ -25,7 +24,8 @@
 //!         }
 //!         sleep(Duration::from_millis(500)).await;
 //!     }
-//! }
+//! # assert!(true);
+//! # })
 //! ```
 
 use tokio::time::Instant;
@@ -56,6 +56,7 @@ impl LeakyBucket {
     /// use limitr::bucket::LeakyBucket;
     ///
     /// let bucket = LeakyBucket::new(10, 2);
+    /// # assert!(true);
     /// ```
     pub fn new(capacity: usize, leak_rate: usize) -> Self {
         LeakyBucket {
@@ -75,17 +76,15 @@ impl LeakyBucket {
     /// ```rust
     /// use limitr::bucket::LeakyBucket;
     /// use tokio::time::Duration;
+    /// # tokio_test::block_on(async {
+    ///  let mut bucket = LeakyBucket::new(10, 2);
     ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let mut bucket = LeakyBucket::new(10, 2);
-    ///
-    ///     if bucket.try_consume().await {
-    ///         println!("Request succeeded.");
-    ///     } else {
-    ///         println!("Request failed, bucket is empty.");
-    ///     }
-    /// }
+    ///  if bucket.try_consume().await {
+    ///     println!("Request succeeded.");
+    ///  } else {
+    ///     println!("Request failed, bucket is empty.");
+    ///  }
+    /// # })
     /// ```
     pub async fn try_consume(&mut self) -> bool {
         self.leak().await;
@@ -114,5 +113,79 @@ impl LeakyBucket {
                 self.remaining
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::bucket::LeakyBucket;
+    use tokio::time::{sleep, Duration};
+
+    #[tokio::test]
+    async fn test_new_bucket() {
+        let mut bucket = LeakyBucket::new(10, 2);
+
+        for _ in 0..10 {
+            assert!(bucket.try_consume().await);
+        }
+        assert!(!bucket.try_consume().await);
+    }
+
+    #[tokio::test]
+    async fn test_consume_success() {
+        let mut bucket = LeakyBucket::new(5, 1);
+        assert!(bucket.try_consume().await);
+
+        for _ in 0..4 {
+            assert!(bucket.try_consume().await);
+        }
+        assert!(!bucket.try_consume().await);
+    }
+
+    #[tokio::test]
+    async fn test_consume_empty_bucket() {
+        let mut bucket = LeakyBucket::new(1, 1);
+        assert!(bucket.try_consume().await);
+        assert!(!bucket.try_consume().await);
+    }
+
+    #[tokio::test]
+    async fn test_leak() {
+        let mut bucket = LeakyBucket::new(1, 1);
+        assert!(bucket.try_consume().await);
+        assert!(!bucket.try_consume().await);
+        sleep(Duration::from_secs(2)).await;
+        assert!(bucket.try_consume().await);
+    }
+
+    #[tokio::test]
+    async fn test_leak_up_to_capacity() {
+        let mut bucket = LeakyBucket::new(5, 2);
+
+        // consume all
+        for _ in 0..5 {
+            assert!(bucket.try_consume().await);
+        }
+        assert!(!bucket.try_consume().await);
+        sleep(Duration::from_secs(3)).await;
+
+        // After 3 seconds, 6 tokens should have leaked (2 per second), but capacity is 5
+        for _ in 0..5 {
+            assert!(bucket.try_consume().await);
+        }
+        assert!(!bucket.try_consume().await);
+    }
+
+    #[tokio::test]
+    async fn test_multiple_consume_and_leak() {
+        let mut bucket = LeakyBucket::new(5, 1);
+        for _ in 0..5 {
+            assert!(bucket.try_consume().await);
+        }
+        assert!(!bucket.try_consume().await);
+        sleep(Duration::from_secs(2)).await;
+        assert!(bucket.try_consume().await);
+        assert!(bucket.try_consume().await);
+        assert!(!bucket.try_consume().await);
     }
 }

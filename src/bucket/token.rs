@@ -164,7 +164,93 @@ impl TokenBucket {
     /// println!("Available tokens: {}", bucket.available_tokens().await);
     /// # })
     /// ```
-    pub async fn available_tokens(&self) -> u64 {
+    pub async fn available_tokens(&mut self) -> u64 {
+        self.refill().await;
+
         self.tokens
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::bucket::TokenBucket;
+    use tokio::time::{sleep, Duration};
+
+    #[tokio::test]
+    async fn test_new_token_bucket() {
+        let mut bucket = TokenBucket::new(10, 5);
+        assert_eq!(bucket.available_tokens().await, 10);
+    }
+
+    #[tokio::test]
+    async fn test_consume_success() {
+        let mut bucket = TokenBucket::new(10, 5);
+        assert!(bucket.try_consume(3).await);
+        assert_eq!(bucket.available_tokens().await, 7);
+    }
+
+    #[tokio::test]
+    async fn test_consume_failure() {
+        let mut bucket = TokenBucket::new(10, 5);
+        assert!(!bucket.try_consume(11).await);
+        assert_eq!(bucket.available_tokens().await, 10);
+    }
+
+    #[tokio::test]
+    async fn test_refill() {
+        let mut bucket = TokenBucket::new(10, 5);
+        assert!(bucket.try_consume(10).await);
+        assert_eq!(bucket.available_tokens().await, 0);
+
+        sleep(Duration::from_secs(1)).await;
+        assert!(bucket.try_consume(5).await);
+        assert_eq!(bucket.available_tokens().await, 0);
+    }
+
+    #[tokio::test]
+    async fn test_refill_up_to_capacity() {
+        let mut bucket = TokenBucket::new(10, 5);
+        assert!(bucket.try_consume(10).await);
+
+        sleep(Duration::from_secs(2)).await;
+        assert!(bucket.try_consume(10).await);
+
+        sleep(Duration::from_secs(2)).await;
+        assert_eq!(bucket.available_tokens().await, 10);
+    }
+
+    #[tokio::test]
+    async fn test_multiple_consume_and_refill() {
+        let mut bucket = TokenBucket::new(10, 2);
+
+        for _ in 0..5 {
+            assert!(bucket.try_consume(2).await);
+            sleep(Duration::from_millis(500)).await;
+        }
+
+        assert!(!bucket.try_consume(5).await);
+        assert!(bucket.try_consume(4).await);
+        assert!(!bucket.try_consume(1).await);
+        assert_eq!(bucket.available_tokens().await, 0);
+
+        sleep(Duration::from_secs(1)).await;
+        assert!(bucket.try_consume(2).await);
+        assert_eq!(bucket.available_tokens().await, 0);
+    }
+
+    #[tokio::test]
+    async fn test_consume_zero_tokens() {
+        let mut bucket = TokenBucket::new(10, 5);
+        assert!(bucket.try_consume(0).await);
+        assert_eq!(bucket.available_tokens().await, 10);
+    }
+
+    #[tokio::test]
+    async fn test_rapid_consume() {
+        let mut bucket = TokenBucket::new(1000, 1000);
+        for _ in 0..1000 {
+            assert!(bucket.try_consume(1).await);
+        }
+        assert!(!bucket.try_consume(1).await);
     }
 }
