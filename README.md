@@ -1,5 +1,8 @@
 # limitr
 
+[![codecov](https://codecov.io/gh/Arteiii/limitr/graph/badge.svg?token=DKD1ZYRT5D)](https://codecov.io/gh/Arteiii/limitr)
+[![Check and Lint](https://github.com/Arteiii/limitr/actions/workflows/check_and_lint.yml/badge.svg)](https://github.com/Arteiii/limitr/actions/workflows/check_and_lint.yml)
+
 `limitr` is a Rust crate that provides implementations of rate-limiting algorithms for controlling the rate of requests
 or operations. It includes various algorithms such as Token Bucket and Leaky Bucket, which are commonly used to manage
 and limit request rates in applications.
