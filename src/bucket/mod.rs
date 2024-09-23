@@ -47,8 +47,8 @@
 //! }
 //! ```
 
-pub mod leaky;
-pub mod token;
+mod leaky;
+mod token;
 
 pub use leaky::*;
 pub use token::*;
