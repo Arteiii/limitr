@@ -114,9 +114,10 @@ impl FixedWindowCounter {
         windows.retain(|&window, _| window >= oldest_valid_window);
     }
 }
-
 #[cfg(test)]
 mod tests {
+    // assert will mess up codecov report use assert_eg instead
+
     use crate::window::FixedWindowCounter;
     use tokio::time::{self, Duration};
 
@@ -125,11 +126,16 @@ mod tests {
         let counter = FixedWindowCounter::new(5, Duration::from_secs(60));
 
         for _ in 0..5 {
-            assert!(counter.try_consume().await, "Request should be allowed");
+            assert_eq!(
+                counter.try_consume().await,
+                true,
+                "Request should be allowed"
+            );
         }
 
-        assert!(
-            !counter.try_consume().await,
+        assert_eq!(
+            counter.try_consume().await,
+            false,
             "Request should be rate-limited"
         );
 
@@ -146,14 +152,19 @@ mod tests {
         let counter = FixedWindowCounter::new(3, Duration::from_secs(2));
 
         for _ in 0..3 {
-            assert!(counter.try_consume().await, "Request should be allowed");
+            assert_eq!(
+                counter.try_consume().await,
+                true,
+                "Request should be allowed"
+            );
         }
 
         time::sleep(Duration::from_secs(3)).await;
         counter.clear_old_windows().await;
 
-        assert!(
+        assert_eq!(
             counter.try_consume().await,
+            true,
             "Request should be allowed in the new window"
         );
 
@@ -166,14 +177,19 @@ mod tests {
         let counter = FixedWindowCounter::new(3, Duration::from_secs(2));
 
         for _ in 0..3 {
-            assert!(counter.try_consume().await, "Request should be allowed");
+            assert_eq!(
+                counter.try_consume().await,
+                true,
+                "Request should be allowed"
+            );
         }
 
         counter.clear_old_windows().await;
 
         let windows = counter.windows.lock().await;
-        assert!(
-            !windows.is_empty(),
+        assert_eq!(
+            windows.is_empty(),
+            false,
             "Windows should contain data after clearing"
         );
 
@@ -184,8 +200,9 @@ mod tests {
         counter.clear_old_windows().await;
 
         let windows = counter.windows.lock().await;
-        assert!(
+        assert_eq!(
             windows.is_empty(),
+            true,
             "Windows should be empty after clearing old windows"
         );
     }

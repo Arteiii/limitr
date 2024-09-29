@@ -112,6 +112,8 @@ impl SlidingWindowCounter {
 
 #[cfg(test)]
 mod tests {
+    // assert will mess up codecov report use assert_eg instead
+
     use crate::window::SlidingWindowCounter;
     use std::sync::Arc;
     use tokio::sync::Mutex;
@@ -122,7 +124,11 @@ mod tests {
         let mut limiter = SlidingWindowCounter::new(5, Duration::from_secs(10));
 
         for _ in 0..5 {
-            assert!(limiter.try_consume().await, "Request should be allowed");
+            assert_eq!(
+                limiter.try_consume().await,
+                true,
+                "Request should be allowed"
+            );
         }
     }
 
@@ -131,12 +137,17 @@ mod tests {
         let mut limiter = SlidingWindowCounter::new(3, Duration::from_secs(10));
 
         for _ in 0..3 {
-            assert!(limiter.try_consume().await, "Request should be allowed");
+            assert_eq!(
+                limiter.try_consume().await,
+                true,
+                "Request should be allowed"
+            );
         }
 
-        // 4th request should be denied since limit is 3
-        assert!(
-            !limiter.try_consume().await,
+        // 4th request should be denied since the limit is 3
+        assert_eq!(
+            limiter.try_consume().await,
+            false,
             "Request should be rate-limited"
         );
     }
@@ -146,13 +157,18 @@ mod tests {
         let mut limiter = SlidingWindowCounter::new(3, Duration::from_secs(2));
 
         for _ in 0..3 {
-            assert!(limiter.try_consume().await, "Request should be allowed");
+            assert_eq!(
+                limiter.try_consume().await,
+                true,
+                "Request should be allowed"
+            );
         }
 
         time::sleep(Duration::from_secs(3)).await;
 
-        assert!(
+        assert_eq!(
             limiter.try_consume().await,
+            true,
             "Request should be allowed after window expiration"
         );
     }
@@ -162,20 +178,30 @@ mod tests {
         let mut limiter = SlidingWindowCounter::new(5, Duration::from_secs(5));
 
         for _ in 0..4 {
-            assert!(limiter.try_consume().await, "Request should be allowed");
+            assert_eq!(
+                limiter.try_consume().await,
+                true,
+                "Request should be allowed"
+            );
         }
 
-        assert!(limiter.try_consume().await, "Request should be allowed");
+        assert_eq!(
+            limiter.try_consume().await,
+            true,
+            "Request should be allowed"
+        );
 
-        assert!(
-            !limiter.try_consume().await,
+        assert_eq!(
+            limiter.try_consume().await,
+            false,
             "Request should be rate-limited"
         );
 
         time::sleep(Duration::from_secs(6)).await;
 
-        assert!(
+        assert_eq!(
             limiter.try_consume().await,
+            true,
             "Request should be allowed after window expiration"
         );
     }

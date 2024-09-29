@@ -7,14 +7,18 @@
 ![Crates.io Version](https://img.shields.io/crates/v/limitr)
 
 `limitr` is a Rust crate that provides implementations of rate-limiting algorithms for controlling the rate of requests
-or operations. It includes various algorithms such as Token Bucket and Leaky Bucket, which are commonly used to manage
-and limit request rates in applications.
+or operations. It includes various algorithms such as Token Bucket, Leaky Bucket, Sliding Window, and Fixed Window,
+which are commonly used to manage and limit request rates in applications.
 
 ## Features
 
 - **Token Bucket**: Allows requests to be processed at a burst rate up to a certain capacity and then at a steady rate.
 - **Leaky Bucket**: Ensures a steady rate of processing by "leaking" requests at a constant rate, regardless of incoming
   request burstiness.
+- **Sliding Window**: Provides a more accurate request limiting mechanism by keeping track of individual requests over a
+  moving window of time.
+- **Fixed Window**: Counts requests in fixed intervals, simpler than Sliding Window but can lead to bursts at the
+  boundary of two windows.
 
 ## Installation
 
@@ -81,11 +85,53 @@ async fn main() {
 }
 ```
 
+### Sliding Window
+
+```rust
+use limitr::window::SlidingWindowCounter;
+use tokio::time::Duration;
+
+#[tokio::main]
+async fn main() {
+    let mut limiter = SlidingWindowCounter::new(5, Duration::from_secs(10)); // Allow 5 requests per 10-second window
+
+    for _ in 0..6 {
+        if limiter.try_consume().await {
+            println!("Sliding Window Example: Request succeeded.");
+        } else {
+            println!("Sliding Window Example: Request rate-limited.");
+        }
+    }
+}
+```
+
+### Fixed Window
+
+```rust
+use limitr::window::FixedWindowCounter;
+use tokio::time::{Duration, Instant};
+
+#[tokio::main]
+async fn main() {
+    let mut limiter = FixedWindowCounter::new(5, Duration::from_secs(10)); // Allow 5 requests per 10-second window
+
+    let now = Instant::now();
+    for _ in 0..6 {
+        if limiter.try_consume(now) {
+            println!("Fixed Window Example: Request succeeded.");
+        } else {
+            println!("Fixed Window Example: Request rate-limited.");
+        }
+    }
+}
+```
+
 ## Features
 
 The crate includes the following features:
 
 - `bucket` (default): Enables the Token Bucket and Leaky Bucket implementations.
+- `window`: Enables the Sliding Window and Fixed Window implementations.
 - `full`: Includes additional features or configurations if needed.
 
 To enable specific features, use:

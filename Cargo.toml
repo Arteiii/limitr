@@ -34,7 +34,7 @@ name = "limitr"
 path = "src/lib.rs"
 
 [features]
-default = ["bucket"]
+default = ["bucket", "window"]
 full = ["bucket", "window"]
 bucket = []
 window = []
