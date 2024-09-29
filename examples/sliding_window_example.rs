@@ -1,12 +1,15 @@
-use tokio::time::Duration;
 use limitr::window::SlidingWindowCounter;
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use tokio::time::Duration;
 
 #[tokio::main]
 async fn main() {
     // Create a rate limiter that allows 5 requests per 10-second window
-    let limiter = Arc::new(Mutex::new(SlidingWindowCounter::new(5, Duration::from_secs(10))));
+    let limiter = Arc::new(Mutex::new(SlidingWindowCounter::new(
+        5,
+        Duration::from_secs(10),
+    )));
 
     // Simulate multiple requests being made
     for i in 1..=10 {

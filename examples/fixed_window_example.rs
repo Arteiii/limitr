@@ -1,5 +1,5 @@
-use std::time::Duration;
 use limitr::window::FixedWindowCounter;
+use std::time::Duration;
 
 #[tokio::main]
 async fn main() {
@@ -12,7 +12,10 @@ async fn main() {
     println!("All requests in the current window are consumed.");
 
     // This will be rate-limited because the limit is reached
-    assert!(!counter.try_consume().await, "Request should be rate-limited");
+    assert!(
+        !counter.try_consume().await,
+        "Request should be rate-limited"
+    );
 
     // Wait for a new window to open
     println!("Waiting for the next time window...");
@@ -21,7 +24,10 @@ async fn main() {
     counter.clear_old_windows().await;
 
     // Now we should be able to send new requests
-    assert!(counter.try_consume().await, "Request should be allowed in the new window");
+    assert!(
+        counter.try_consume().await,
+        "Request should be allowed in the new window"
+    );
 
     println!("New window allows requests again.");
 }
