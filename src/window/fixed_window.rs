@@ -116,6 +116,8 @@ impl FixedWindowCounter {
 }
 #[cfg(test)]
 mod tests {
+    // assert will mess up codecov report use assert_eg instead
+
     use crate::window::FixedWindowCounter;
     use tokio::time::{self, Duration};
 
