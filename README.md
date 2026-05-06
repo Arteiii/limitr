@@ -141,6 +141,7 @@ To enable specific features, use:
 features = ["feature_name"]
 ```
 
+
 ## License
 
 `limitr` is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
