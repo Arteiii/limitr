@@ -13,6 +13,8 @@ updates:
         update-types: [ patch, minor ]
 
   - package-ecosystem: "github-actions"
+    labels:
+      - "automerge"
     directory: "/"
     schedule:
       interval: "daily"
